@@ -502,7 +502,11 @@ function Library:addSlider(tabName, text, min, max, default, callback)
     sliderFill.BorderSizePixel = 0
     sliderFill.Parent = sliderBG
     
-    createCorner(sliderFill, 3)
+    createCorner(sliderFill, 4)
+    createGradient(sliderFill, ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Theme.Accent),
+        ColorSequenceKeypoint.new(1, Theme.Success)
+    }), 0)
     
     local value = default
     
