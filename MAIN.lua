@@ -1,616 +1,333 @@
--- VS Code Style GUI for Roblox - Premium Edition (Fixed)
--- โหลดผ่าน loadstring
+local Library = {}
 
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-
--- สร้าง ScreenGui
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "VSCodeGUI"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
--- ตรวจสอบว่าใช้ Synapse X หรือ Executor อื่น
-pcall(function()
-    if syn then
-        syn.protect_gui(ScreenGui)
-        ScreenGui.Parent = game:GetService("CoreGui")
-    else
-        ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+-- สร้าง Window หลัก
+function Library:CreateWindow(title)
+    local Window = {}
+    
+    -- สร้าง ScreenGui
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "MacStyleGUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = game.CoreGui
+    
+    -- สร้าง Main Frame (หน้าต่างหลัก)
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Size = UDim2.new(0, 550, 0, 350)
+    MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+    
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.Parent = MainFrame
+    
+    -- สร้าง Title Bar
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Name = "TitleBar"
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    TitleBar.BorderSizePixel = 0
+    TitleBar.Parent = MainFrame
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 10)
+    TitleCorner.Parent = TitleBar
+    
+    -- ปุ่ม Mac (สีแดง, เหลือง, เขียว)
+    local function createDot(color, position)
+        local Dot = Instance.new("Frame")
+        Dot.Size = UDim2.new(0, 12, 0, 12)
+        Dot.Position = UDim2.new(0, position, 0, 14)
+        Dot.BackgroundColor3 = color
+        Dot.BorderSizePixel = 0
+        Dot.Parent = TitleBar
+        
+        local DotCorner = Instance.new("UICorner")
+        DotCorner.CornerRadius = UDim.new(1, 0)
+        DotCorner.Parent = Dot
+        
+        return Dot
     end
-end)
-
-if not ScreenGui.Parent then
-    ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-end
-
--- Main Frame
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 900, 0, 600)
-MainFrame.Position = UDim2.new(0.5, -450, 0.5, -300)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Visible = false
-MainFrame.Parent = ScreenGui
-
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
-MainCorner.Parent = MainFrame
-
--- Title Bar
-local TitleBar = Instance.new("Frame")
-TitleBar.Name = "TitleBar"
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-TitleBar.BorderSizePixel = 0
-TitleBar.Parent = MainFrame
-
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 10)
-TitleCorner.Parent = TitleBar
-
-local TitleBarCover = Instance.new("Frame")
-TitleBarCover.Size = UDim2.new(1, 0, 0, 10)
-TitleBarCover.Position = UDim2.new(0, 0, 1, -10)
-TitleBarCover.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-TitleBarCover.BorderSizePixel = 0
-TitleBarCover.Parent = TitleBar
-
--- Mac Buttons
-local MacButtons = Instance.new("Frame")
-MacButtons.Name = "MacButtons"
-MacButtons.Size = UDim2.new(0, 70, 0, 40)
-MacButtons.Position = UDim2.new(0, 12, 0, 0)
-MacButtons.BackgroundTransparency = 1
-MacButtons.Parent = TitleBar
-
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Name = "CloseBtn"
-CloseBtn.Size = UDim2.new(0, 12, 0, 12)
-CloseBtn.Position = UDim2.new(0, 0, 0.5, -6)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 95, 87)
-CloseBtn.BorderSizePixel = 0
-CloseBtn.Text = ""
-CloseBtn.Parent = MacButtons
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(1, 0)
-CloseCorner.Parent = CloseBtn
-
-local MinBtn = Instance.new("TextButton")
-MinBtn.Name = "MinBtn"
-MinBtn.Size = UDim2.new(0, 12, 0, 12)
-MinBtn.Position = UDim2.new(0, 20, 0.5, -6)
-MinBtn.BackgroundColor3 = Color3.fromRGB(255, 189, 68)
-MinBtn.BorderSizePixel = 0
-MinBtn.Text = ""
-MinBtn.Parent = MacButtons
-
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(1, 0)
-MinCorner.Parent = MinBtn
-
-local MaxBtn = Instance.new("TextButton")
-MaxBtn.Name = "MaxBtn"
-MaxBtn.Size = UDim2.new(0, 12, 0, 12)
-MaxBtn.Position = UDim2.new(0, 40, 0.5, -6)
-MaxBtn.BackgroundColor3 = Color3.fromRGB(40, 201, 64)
-MaxBtn.BorderSizePixel = 0
-MaxBtn.Text = ""
-MaxBtn.Parent = MacButtons
-
-local MaxCorner = Instance.new("UICorner")
-MaxCorner.CornerRadius = UDim.new(1, 0)
-MaxCorner.Parent = MaxBtn
-
--- Title Text
-local TitleText = Instance.new("TextLabel")
-TitleText.Name = "TitleText"
-TitleText.Size = UDim2.new(1, -180, 1, 0)
-TitleText.Position = UDim2.new(0, 90, 0, 0)
-TitleText.BackgroundTransparency = 1
-TitleText.Text = "Visual Studio Code"
-TitleText.TextColor3 = Color3.fromRGB(204, 204, 204)
-TitleText.TextSize = 13
-TitleText.Font = Enum.Font.SourceSans
-TitleText.Parent = TitleBar
-
--- Draggable
-local dragging = false
-local dragStart = nil
-local startPos = nil
-
-TitleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-    end
-end)
-
-TitleBar.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+    
+    createDot(Color3.fromRGB(255, 95, 87), 15)
+    createDot(Color3.fromRGB(255, 189, 68), 35)
+    createDot(Color3.fromRGB(40, 201, 64), 55)
+    
+    -- Title Text
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, -80, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 75, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = title
+    TitleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+    TitleLabel.TextSize = 14
+    TitleLabel.Font = Enum.Font.GothamMedium
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = TitleBar
+    
+    -- สร้าง Sidebar
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Name = "Sidebar"
+    Sidebar.Size = UDim2.new(0, 180, 1, -40)
+    Sidebar.Position = UDim2.new(0, 0, 0, 40)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = MainFrame
+    
+    local SidebarCorner = Instance.new("UICorner")
+    SidebarCorner.CornerRadius = UDim.new(0, 10)
+    SidebarCorner.Parent = Sidebar
+    
+    -- ScrollingFrame สำหรับ Tabs
+    local TabList = Instance.new("ScrollingFrame")
+    TabList.Name = "TabList"
+    TabList.Size = UDim2.new(1, -10, 1, -10)
+    TabList.Position = UDim2.new(0, 5, 0, 5)
+    TabList.BackgroundTransparency = 1
+    TabList.BorderSizePixel = 0
+    TabList.ScrollBarThickness = 4
+    TabList.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+    TabList.Parent = Sidebar
+    
+    local TabListLayout = Instance.new("UIListLayout")
+    TabListLayout.Padding = UDim.new(0, 3)
+    TabListLayout.Parent = TabList
+    
+    -- Content Area
+    local ContentArea = Instance.new("Frame")
+    ContentArea.Name = "ContentArea"
+    ContentArea.Size = UDim2.new(1, -190, 1, -50)
+    ContentArea.Position = UDim2.new(0, 185, 0, 45)
+    ContentArea.BackgroundTransparency = 1
+    ContentArea.Parent = MainFrame
+    
+    -- ทำให้ลากได้
+    local dragging, dragInput, dragStart, startPos
+    
+    local function update(input)
         local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-end)
-
--- Tab Bar
-local TabBar = Instance.new("Frame")
-TabBar.Name = "TabBar"
-TabBar.Size = UDim2.new(1, 0, 0, 35)
-TabBar.Position = UDim2.new(0, 0, 0, 40)
-TabBar.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-TabBar.BorderSizePixel = 0
-TabBar.Parent = MainFrame
-
-local ActiveTab = Instance.new("Frame")
-ActiveTab.Name = "ActiveTab"
-ActiveTab.Size = UDim2.new(0, 180, 1, 0)
-ActiveTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ActiveTab.BorderSizePixel = 0
-ActiveTab.Parent = TabBar
-
-local TabIcon = Instance.new("TextLabel")
-TabIcon.Size = UDim2.new(0, 20, 1, 0)
-TabIcon.Position = UDim2.new(0, 12, 0, 0)
-TabIcon.BackgroundTransparency = 1
-TabIcon.Text = "📄"
-TabIcon.TextColor3 = Color3.fromRGB(85, 180, 226)
-TabIcon.TextSize = 16
-TabIcon.Font = Enum.Font.SourceSans
-TabIcon.Parent = ActiveTab
-
-local TabText = Instance.new("TextLabel")
-TabText.Size = UDim2.new(1, -50, 1, 0)
-TabText.Position = UDim2.new(0, 35, 0, 0)
-TabText.BackgroundTransparency = 1
-TabText.Text = "main.lua"
-TabText.TextColor3 = Color3.fromRGB(204, 204, 204)
-TabText.TextSize = 13
-TabText.Font = Enum.Font.SourceSans
-TabText.TextXAlignment = Enum.TextXAlignment.Left
-TabText.Parent = ActiveTab
-
-local ModifiedDot = Instance.new("Frame")
-ModifiedDot.Name = "ModifiedDot"
-ModifiedDot.Size = UDim2.new(0, 8, 0, 8)
-ModifiedDot.Position = UDim2.new(1, -20, 0.5, -4)
-ModifiedDot.BackgroundColor3 = Color3.fromRGB(204, 204, 204)
-ModifiedDot.BorderSizePixel = 0
-ModifiedDot.Parent = ActiveTab
-
-local DotCorner = Instance.new("UICorner")
-DotCorner.CornerRadius = UDim.new(1, 0)
-DotCorner.Parent = ModifiedDot
-
--- Content Area
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Name = "ContentFrame"
-ContentFrame.Size = UDim2.new(1, 0, 1, -75)
-ContentFrame.Position = UDim2.new(0, 0, 0, 75)
-ContentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ContentFrame.BorderSizePixel = 0
-ContentFrame.ClipsDescendants = true
-ContentFrame.Parent = MainFrame
-
--- Sidebar
-local Sidebar = Instance.new("Frame")
-Sidebar.Name = "Sidebar"
-Sidebar.Size = UDim2.new(0, 250, 1, 0)
-Sidebar.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-Sidebar.BorderSizePixel = 0
-Sidebar.Parent = ContentFrame
-
-local SidebarHeader = Instance.new("Frame")
-SidebarHeader.Size = UDim2.new(1, 0, 0, 35)
-SidebarHeader.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-SidebarHeader.BorderSizePixel = 0
-SidebarHeader.Parent = Sidebar
-
-local SidebarTitle = Instance.new("TextLabel")
-SidebarTitle.Size = UDim2.new(1, -20, 1, 0)
-SidebarTitle.Position = UDim2.new(0, 10, 0, 0)
-SidebarTitle.BackgroundTransparency = 1
-SidebarTitle.Text = "EXPLORER"
-SidebarTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
-SidebarTitle.TextSize = 11
-SidebarTitle.Font = Enum.Font.SourceSansBold
-SidebarTitle.TextXAlignment = Enum.TextXAlignment.Left
-SidebarTitle.Parent = SidebarHeader
-
-local FileTree = Instance.new("ScrollingFrame")
-FileTree.Name = "FileTree"
-FileTree.Size = UDim2.new(1, 0, 1, -35)
-FileTree.Position = UDim2.new(0, 0, 0, 35)
-FileTree.BackgroundTransparency = 1
-FileTree.BorderSizePixel = 0
-FileTree.ScrollBarThickness = 4
-FileTree.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-FileTree.CanvasSize = UDim2.new(0, 0, 0, 0)
-FileTree.Parent = Sidebar
-
-local TreeLayout = Instance.new("UIListLayout")
-TreeLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TreeLayout.Padding = UDim.new(0, 2)
-TreeLayout.Parent = FileTree
-
--- Editor Area
-local EditorFrame = Instance.new("Frame")
-EditorFrame.Name = "EditorFrame"
-EditorFrame.Size = UDim2.new(1, -250, 1, -30)
-EditorFrame.Position = UDim2.new(0, 250, 0, 0)
-EditorFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-EditorFrame.BorderSizePixel = 0
-EditorFrame.Parent = ContentFrame
-
-local LineNumbers = Instance.new("Frame")
-LineNumbers.Name = "LineNumbers"
-LineNumbers.Size = UDim2.new(0, 50, 1, 0)
-LineNumbers.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-LineNumbers.BorderSizePixel = 0
-LineNumbers.Parent = EditorFrame
-
-local CodeScroll = Instance.new("ScrollingFrame")
-CodeScroll.Name = "CodeScroll"
-CodeScroll.Size = UDim2.new(1, -50, 1, 0)
-CodeScroll.Position = UDim2.new(0, 50, 0, 0)
-CodeScroll.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-CodeScroll.BorderSizePixel = 0
-CodeScroll.ScrollBarThickness = 8
-CodeScroll.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
-CodeScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-CodeScroll.Parent = EditorFrame
-
-local CodeLayout = Instance.new("UIListLayout")
-CodeLayout.SortOrder = Enum.SortOrder.LayoutOrder
-CodeLayout.Padding = UDim.new(0, 0)
-CodeLayout.Parent = CodeScroll
-
--- Status Bar
-local StatusBar = Instance.new("Frame")
-StatusBar.Name = "StatusBar"
-StatusBar.Size = UDim2.new(1, 0, 0, 30)
-StatusBar.Position = UDim2.new(0, 0, 1, -30)
-StatusBar.BackgroundColor3 = Color3.fromRGB(0, 122, 204)
-StatusBar.BorderSizePixel = 0
-StatusBar.Parent = ContentFrame
-
-local StatusLeft = Instance.new("TextLabel")
-StatusLeft.Size = UDim2.new(0.5, -10, 1, 0)
-StatusLeft.Position = UDim2.new(0, 10, 0, 0)
-StatusLeft.BackgroundTransparency = 1
-StatusLeft.Text = "Ready"
-StatusLeft.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusLeft.TextSize = 13
-StatusLeft.Font = Enum.Font.SourceSans
-StatusLeft.TextXAlignment = Enum.TextXAlignment.Left
-StatusLeft.Parent = StatusBar
-
-local StatusRight = Instance.new("TextLabel")
-StatusRight.Size = UDim2.new(0.5, -10, 1, 0)
-StatusRight.Position = UDim2.new(0.5, 0, 0, 0)
-StatusRight.BackgroundTransparency = 1
-StatusRight.Text = "Lua  •  UTF-8  •  Ln 1, Col 1"
-StatusRight.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusRight.TextSize = 13
-StatusRight.Font = Enum.Font.SourceSans
-StatusRight.TextXAlignment = Enum.TextXAlignment.Right
-StatusRight.Parent = StatusBar
-
--- Run Button
-local RunButton = Instance.new("TextButton")
-RunButton.Name = "RunButton"
-RunButton.Size = UDim2.new(0, 80, 0, 28)
-RunButton.Position = UDim2.new(1, -90, 0, 6)
-RunButton.BackgroundColor3 = Color3.fromRGB(0, 122, 204)
-RunButton.BorderSizePixel = 0
-RunButton.Text = "▶ Run"
-RunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunButton.TextSize = 13
-RunButton.Font = Enum.Font.SourceSansBold
-RunButton.Parent = TitleBar
-
-local RunCorner = Instance.new("UICorner")
-RunCorner.CornerRadius = UDim.new(0, 4)
-RunCorner.Parent = RunButton
-
--- Variables
-local scriptFunctions = {}
-local lineCount = 0
-local currentFunction = nil
-
--- Functions
-local function addCodeLine(text, color)
-    lineCount = lineCount + 1
     
-    local LineNum = Instance.new("TextLabel")
-    LineNum.Name = "Line"..lineCount
-    LineNum.Size = UDim2.new(1, 0, 0, 20)
-    LineNum.Position = UDim2.new(0, 0, 0, (lineCount - 1) * 20)
-    LineNum.BackgroundTransparency = 1
-    LineNum.Text = tostring(lineCount)
-    LineNum.TextColor3 = Color3.fromRGB(133, 133, 133)
-    LineNum.TextSize = 13
-    LineNum.Font = Enum.Font.Code
-    LineNum.TextXAlignment = Enum.TextXAlignment.Right
-    LineNum.Parent = LineNumbers
-    
-    local CodeLine = Instance.new("TextLabel")
-    CodeLine.Name = "CodeLine"..lineCount
-    CodeLine.Size = UDim2.new(1, 0, 0, 20)
-    CodeLine.BackgroundTransparency = 1
-    CodeLine.Text = "  " .. text
-    CodeLine.TextColor3 = color or Color3.fromRGB(220, 220, 220)
-    CodeLine.TextSize = 13
-    CodeLine.Font = Enum.Font.Code
-    CodeLine.TextXAlignment = Enum.TextXAlignment.Left
-    CodeLine.LayoutOrder = lineCount
-    CodeLine.Parent = CodeScroll
-    
-    return CodeLine
-end
-
-local function clearCode()
-    lineCount = 0
-    for _, child in pairs(LineNumbers:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
-        end
-    end
-    for _, child in pairs(CodeScroll:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
-        end
-    end
-end
-
-local function displayFunctionCode(funcData)
-    clearCode()
-    StatusLeft.Text = "Viewing: " .. funcData.name
-    currentFunction = funcData
-    
-    addCodeLine("-- " .. funcData.description, Color3.fromRGB(106, 153, 85))
-    addCodeLine("", Color3.fromRGB(220, 220, 220))
-    addCodeLine("local function " .. funcData.name .. "()", Color3.fromRGB(220, 220, 170))
-    addCodeLine("    -- Click 'Run' to execute", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    " .. funcData.description, Color3.fromRGB(206, 145, 120))
-    addCodeLine("end", Color3.fromRGB(220, 220, 170))
-    addCodeLine("", Color3.fromRGB(220, 220, 220))
-    addCodeLine(funcData.name .. "()", Color3.fromRGB(220, 220, 170))
-    
-    CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
-    StatusRight.Text = "Lua  •  UTF-8  •  Ln " .. lineCount .. ", Col 1"
-end
-
-local function addFileToTree(icon, name, callback, order)
-    local FileItem = Instance.new("TextButton")
-    FileItem.Name = name
-    FileItem.Size = UDim2.new(1, -10, 0, 28)
-    FileItem.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-    FileItem.BorderSizePixel = 0
-    FileItem.Text = ""
-    FileItem.AutoButtonColor = false
-    FileItem.LayoutOrder = order or 0
-    FileItem.Parent = FileTree
-    
-    local FileIcon = Instance.new("TextLabel")
-    FileIcon.Size = UDim2.new(0, 25, 1, 0)
-    FileIcon.Position = UDim2.new(0, 15, 0, 0)
-    FileIcon.BackgroundTransparency = 1
-    FileIcon.Text = icon
-    FileIcon.TextSize = 14
-    FileIcon.Font = Enum.Font.SourceSans
-    FileIcon.Parent = FileItem
-    
-    local FileName = Instance.new("TextLabel")
-    FileName.Size = UDim2.new(1, -45, 1, 0)
-    FileName.Position = UDim2.new(0, 40, 0, 0)
-    FileName.BackgroundTransparency = 1
-    FileName.Text = name
-    FileName.TextColor3 = Color3.fromRGB(204, 204, 204)
-    FileName.TextSize = 13
-    FileName.Font = Enum.Font.SourceSans
-    FileName.TextXAlignment = Enum.TextXAlignment.Left
-    FileName.Parent = FileItem
-    
-    FileItem.MouseEnter:Connect(function()
-        FileItem.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    end)
-    
-    FileItem.MouseLeave:Connect(function()
-        FileItem.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
-    end)
-    
-    FileItem.MouseButton1Click:Connect(function()
-        if callback then
-            TabText.Text = name
-            TabIcon.Text = icon
-            callback()
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
     end)
     
-    return FileItem
-end
-
-local function updateFileTree()
-    for _, child in pairs(FileTree:GetChildren()) do
-        if child:IsA("TextButton") then
-            child:Destroy()
+    TitleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
         end
-    end
+    end)
     
-    addFileToTree("📁", "src", nil, 1)
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
     
-    for i, funcData in ipairs(scriptFunctions) do
-        addFileToTree("📄", funcData.name .. ".lua", function()
-            displayFunctionCode(funcData)
-        end, i + 1)
-    end
+    Window.CurrentTab = nil
+    Window.Tabs = {}
     
-    FileTree.CanvasSize = UDim2.new(0, 0, 0, #scriptFunctions * 30 + 100)
-end
-
-local function addFunction(name, description, callback)
-    table.insert(scriptFunctions, {
-        name = name,
-        description = description,
-        callback = callback
-    })
-end
-
-local isVisible = false
-
-local function toggleGUI()
-    isVisible = not isVisible
-    
-    if isVisible then
-        MainFrame.Visible = true
-        MainFrame.Position = UDim2.new(0.5, -450, -1, 0)
-        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {
-            Position = UDim2.new(0.5, -450, 0.5, -300)
-        }):Play()
-    else
-        local tween = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {
-            Position = UDim2.new(0.5, -450, 1.5, 0)
-        })
-        tween:Play()
-        tween.Completed:Connect(function()
-            if not isVisible then
-                MainFrame.Visible = false
+    -- ฟังก์ชันสร้าง Tab
+    function Window:NewTab(tabName)
+        local Tab = {}
+        
+        -- สร้างปุ่ม Tab
+        local TabButton = Instance.new("TextButton")
+        TabButton.Name = tabName
+        TabButton.Size = UDim2.new(1, 0, 0, 35)
+        TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        TabButton.BorderSizePixel = 0
+        TabButton.Text = "  " .. tabName
+        TabButton.TextColor3 = Color3.fromRGB(180, 180, 180)
+        TabButton.TextSize = 13
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextXAlignment = Enum.TextXAlignment.Left
+        TabButton.Parent = TabList
+        
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.Parent = TabButton
+        
+        -- ไอคอน (จุดสีฟ้า)
+        local Icon = Instance.new("Frame")
+        Icon.Size = UDim2.new(0, 8, 0, 8)
+        Icon.Position = UDim2.new(0, 10, 0.5, -4)
+        Icon.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+        Icon.BorderSizePixel = 0
+        Icon.Parent = TabButton
+        
+        local IconCorner = Instance.new("UICorner")
+        IconCorner.CornerRadius = UDim.new(1, 0)
+        IconCorner.Parent = Icon
+        
+        -- สร้าง Content สำหรับ Tab นี้
+        local TabContent = Instance.new("ScrollingFrame")
+        TabContent.Name = tabName .. "Content"
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.BackgroundTransparency = 1
+        TabContent.BorderSizePixel = 0
+        TabContent.ScrollBarThickness = 4
+        TabContent.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
+        TabContent.Visible = false
+        TabContent.Parent = ContentArea
+        
+        local ContentLayout = Instance.new("UIListLayout")
+        ContentLayout.Padding = UDim.new(0, 8)
+        ContentLayout.Parent = TabContent
+        
+        -- เมื่อคลิกที่ Tab
+        TabButton.MouseButton1Click:Connect(function()
+            for _, tab in pairs(Window.Tabs) do
+                tab.Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+                tab.Button.TextColor3 = Color3.fromRGB(180, 180, 180)
+                tab.Content.Visible = false
             end
+            
+            TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TabContent.Visible = true
+            Window.CurrentTab = Tab
         end)
+        
+        -- ถ้าเป็น Tab แรก ให้แสดงทันที
+        if #Window.Tabs == 0 then
+            TabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TabContent.Visible = true
+            Window.CurrentTab = Tab
+        end
+        
+        Tab.Button = TabButton
+        Tab.Content = TabContent
+        table.insert(Window.Tabs, Tab)
+        
+        -- ฟังก์ชันสร้าง Button
+        function Tab:NewButton(buttonText, callback)
+            local Button = Instance.new("TextButton")
+            Button.Size = UDim2.new(1, -10, 0, 35)
+            Button.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+            Button.BorderSizePixel = 0
+            Button.Text = buttonText
+            Button.TextColor3 = Color3.fromRGB(220, 220, 220)
+            Button.TextSize = 13
+            Button.Font = Enum.Font.Gotham
+            Button.Parent = TabContent
+            
+            local ButtonCorner = Instance.new("UICorner")
+            ButtonCorner.CornerRadius = UDim.new(0, 6)
+            ButtonCorner.Parent = Button
+            
+            Button.MouseButton1Click:Connect(function()
+                Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+                wait(0.1)
+                Button.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+                callback()
+            end)
+            
+            return Button
+        end
+        
+        -- ฟังก์ชันสร้าง Toggle
+        function Tab:NewToggle(toggleText, default, callback)
+            local toggled = default or false
+            
+            local ToggleFrame = Instance.new("Frame")
+            ToggleFrame.Size = UDim2.new(1, -10, 0, 35)
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+            ToggleFrame.BorderSizePixel = 0
+            ToggleFrame.Parent = TabContent
+            
+            local ToggleCorner = Instance.new("UICorner")
+            ToggleCorner.CornerRadius = UDim.new(0, 6)
+            ToggleCorner.Parent = ToggleFrame
+            
+            local ToggleLabel = Instance.new("TextLabel")
+            ToggleLabel.Size = UDim2.new(1, -50, 1, 0)
+            ToggleLabel.Position = UDim2.new(0, 10, 0, 0)
+            ToggleLabel.BackgroundTransparency = 1
+            ToggleLabel.Text = toggleText
+            ToggleLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+            ToggleLabel.TextSize = 13
+            ToggleLabel.Font = Enum.Font.Gotham
+            ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ToggleLabel.Parent = ToggleFrame
+            
+            local ToggleButton = Instance.new("TextButton")
+            ToggleButton.Size = UDim2.new(0, 40, 0, 20)
+            ToggleButton.Position = UDim2.new(1, -45, 0.5, -10)
+            ToggleButton.BackgroundColor3 = toggled and Color3.fromRGB(100, 200, 255) or Color3.fromRGB(70, 70, 70)
+            ToggleButton.BorderSizePixel = 0
+            ToggleButton.Text = ""
+            ToggleButton.Parent = ToggleFrame
+            
+            local ToggleBtnCorner = Instance.new("UICorner")
+            ToggleBtnCorner.CornerRadius = UDim.new(1, 0)
+            ToggleBtnCorner.Parent = ToggleButton
+            
+            local ToggleCircle = Instance.new("Frame")
+            ToggleCircle.Size = UDim2.new(0, 16, 0, 16)
+            ToggleCircle.Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            ToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ToggleCircle.BorderSizePixel = 0
+            ToggleCircle.Parent = ToggleButton
+            
+            local CircleCorner = Instance.new("UICorner")
+            CircleCorner.CornerRadius = UDim.new(1, 0)
+            CircleCorner.Parent = ToggleCircle
+            
+            ToggleButton.MouseButton1Click:Connect(function()
+                toggled = not toggled
+                
+                game:GetService("TweenService"):Create(
+                    ToggleButton,
+                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                    {BackgroundColor3 = toggled and Color3.fromRGB(100, 200, 255) or Color3.fromRGB(70, 70, 70)}
+                ):Play()
+                
+                game:GetService("TweenService"):Create(
+                    ToggleCircle,
+                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+                    {Position = toggled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}
+                ):Play()
+                
+                callback(toggled)
+            end)
+            
+            return ToggleButton
+        end
+        
+        -- ฟังก์ชันสร้าง Label
+        function Tab:NewLabel(labelText)
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -10, 0, 30)
+            Label.BackgroundTransparency = 1
+            Label.Text = labelText
+            Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+            Label.TextSize = 13
+            Label.Font = Enum.Font.Gotham
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = TabContent
+            
+            return Label
+        end
+        
+        return Tab
     end
+    
+    return Window
 end
 
--- Button Actions
-CloseBtn.MouseButton1Click:Connect(function()
-    toggleGUI()
-end)
-
-MinBtn.MouseButton1Click:Connect(function()
-    toggleGUI()
-end)
-
-MaxBtn.MouseButton1Click:Connect(function()
-    if MainFrame.Size == UDim2.new(0, 900, 0, 600) then
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0.95, 0, 0.95, 0),
-            Position = UDim2.new(0.025, 0, 0.025, 0)
-        }):Play()
-    else
-        TweenService:Create(MainFrame, TweenInfo.new(0.3), {
-            Size = UDim2.new(0, 900, 0, 600),
-            Position = UDim2.new(0.5, -450, 0.5, -300)
-        }):Play()
-    end
-end)
-
-RunButton.MouseButton1Click:Connect(function()
-    if currentFunction and currentFunction.callback then
-        StatusLeft.Text = "Executing: " .. currentFunction.name
-        pcall(currentFunction.callback)
-        task.wait(1)
-        StatusLeft.Text = "Completed: " .. currentFunction.name
-    else
-        StatusLeft.Text = "No function selected"
-    end
-end)
-
--- Hover Effects
-CloseBtn.MouseEnter:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 115, 107)}):Play()
-end)
-
-CloseBtn.MouseLeave:Connect(function()
-    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 95, 87)}):Play()
-end)
-
-MinBtn.MouseEnter:Connect(function()
-    TweenService:Create(MinBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 209, 88)}):Play()
-end)
-
-MinBtn.MouseLeave:Connect(function()
-    TweenService:Create(MinBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 189, 68)}):Play()
-end)
-
-MaxBtn.MouseEnter:Connect(function()
-    TweenService:Create(MaxBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 221, 84)}):Play()
-end)
-
-MaxBtn.MouseLeave:Connect(function()
-    TweenService:Create(MaxBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 201, 64)}):Play()
-end)
-
-RunButton.MouseEnter:Connect(function()
-    TweenService:Create(RunButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 142, 234)}):Play()
-end)
-
-RunButton.MouseLeave:Connect(function()
-    TweenService:Create(RunButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 122, 204)}):Play()
-end)
-
--- Keybind
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
-        toggleGUI()
-    end
-end)
-
--- Show Welcome
-local function showWelcome()
-    clearCode()
-    addCodeLine("--[[", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    Welcome to VS Code Style GUI", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    Created for Roblox Executors", Color3.fromRGB(106, 153, 85))
-    addCodeLine("", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    Press Right Shift to toggle", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    Click files to view code", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    Click Run to execute", Color3.fromRGB(106, 153, 85))
-    addCodeLine("--]]", Color3.fromRGB(106, 153, 85))
-    addCodeLine("", Color3.fromRGB(220, 220, 220))
-    addCodeLine("print('Welcome!')", Color3.fromRGB(220, 220, 170))
-    CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
-end
-
-task.spawn(function()
-    task.wait(0.5)
-    toggleGUI()
-    showWelcome()
-    print("VS Code GUI Loaded!")
-    print("Press Right Shift to toggle")
-end)
-
--- Return API
-return {
-    Toggle = toggleGUI,
-    AddFunction = function(name, description, callback)
-        addFunction(name, description, callback)
-        updateFileTree()
-        StatusLeft.Text = "Added: " .. name
-    end,
-    SetStatus = function(text)
-        StatusLeft.Text = text
-    end,
-    ClearFunctions = function()
-        scriptFunctions = {}
-        updateFileTree()
-        clearCode()
-        StatusLeft.Text = "Functions cleared"
-    end,
-    ShowWelcome = showWelcome,
-    GUI = ScreenGui
-}
+return Library
