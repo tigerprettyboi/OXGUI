@@ -1,4 +1,4 @@
--- VS Code Style GUI for Roblox - Premium Edition
+-- VS Code Style GUI for Roblox - Premium Edition (Fixed)
 -- โหลดผ่าน loadstring
 
 local TweenService = game:GetService("TweenService")
@@ -11,14 +11,20 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 -- ตรวจสอบว่าใช้ Synapse X หรือ Executor อื่น
-if syn then
-    syn.protect_gui(ScreenGui)
-    ScreenGui.Parent = game:GetService("CoreGui")
-else
+pcall(function()
+    if syn then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = game:GetService("CoreGui")
+    else
+        ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+end)
+
+if not ScreenGui.Parent then
     ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- Main Frame (หน้าต่างหลัก)
+-- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 900, 0, 600)
@@ -29,26 +35,11 @@ MainFrame.Active = true
 MainFrame.Visible = false
 MainFrame.Parent = ScreenGui
 
--- เพิ่ม UICorner
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
--- เพิ่ม Shadow Effect
-local Shadow = Instance.new("ImageLabel")
-Shadow.Name = "Shadow"
-Shadow.Size = UDim2.new(1, 30, 1, 30)
-Shadow.Position = UDim2.new(0, -15, 0, -15)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-Shadow.ImageTransparency = 0.5
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 10, 10)
-Shadow.ZIndex = 0
-Shadow.Parent = MainFrame
-
--- Title Bar (Mac Style)
+-- Title Bar
 local TitleBar = Instance.new("Frame")
 TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 40)
@@ -60,7 +51,6 @@ local TitleCorner = Instance.new("UICorner")
 TitleCorner.CornerRadius = UDim.new(0, 10)
 TitleCorner.Parent = TitleBar
 
--- ซ่อนส่วนล่างของ Title Bar Corner
 local TitleBarCover = Instance.new("Frame")
 TitleBarCover.Size = UDim2.new(1, 0, 0, 10)
 TitleBarCover.Position = UDim2.new(0, 0, 1, -10)
@@ -68,7 +58,7 @@ TitleBarCover.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
 TitleBarCover.BorderSizePixel = 0
 TitleBarCover.Parent = TitleBar
 
--- Mac Style Buttons (ซ้ายมือ)
+-- Mac Buttons
 local MacButtons = Instance.new("Frame")
 MacButtons.Name = "MacButtons"
 MacButtons.Size = UDim2.new(0, 70, 0, 40)
@@ -76,7 +66,6 @@ MacButtons.Position = UDim2.new(0, 12, 0, 0)
 MacButtons.BackgroundTransparency = 1
 MacButtons.Parent = TitleBar
 
--- Close Button (สีแดง)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Size = UDim2.new(0, 12, 0, 12)
@@ -90,7 +79,6 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(1, 0)
 CloseCorner.Parent = CloseBtn
 
--- Minimize Button (สีเหลือง)
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
 MinBtn.Size = UDim2.new(0, 12, 0, 12)
@@ -104,7 +92,6 @@ local MinCorner = Instance.new("UICorner")
 MinCorner.CornerRadius = UDim.new(1, 0)
 MinCorner.Parent = MinBtn
 
--- Maximize Button (สีเขียว)
 local MaxBtn = Instance.new("TextButton")
 MaxBtn.Name = "MaxBtn"
 MaxBtn.Size = UDim2.new(0, 12, 0, 12)
@@ -118,7 +105,7 @@ local MaxCorner = Instance.new("UICorner")
 MaxCorner.CornerRadius = UDim.new(1, 0)
 MaxCorner.Parent = MaxBtn
 
--- Title Text (ตรงกลาง)
+-- Title Text
 local TitleText = Instance.new("TextLabel")
 TitleText.Name = "TitleText"
 TitleText.Size = UDim2.new(1, -180, 1, 0)
@@ -130,7 +117,7 @@ TitleText.TextSize = 13
 TitleText.Font = Enum.Font.SourceSans
 TitleText.Parent = TitleBar
 
--- ทำให้ลากได้
+-- Draggable
 local dragging = false
 local dragStart = nil
 local startPos = nil
@@ -161,7 +148,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Tab Bar (แท็บไฟล์)
+-- Tab Bar
 local TabBar = Instance.new("Frame")
 TabBar.Name = "TabBar"
 TabBar.Size = UDim2.new(1, 0, 0, 35)
@@ -170,7 +157,6 @@ TabBar.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
 TabBar.BorderSizePixel = 0
 TabBar.Parent = MainFrame
 
--- Active Tab
 local ActiveTab = Instance.new("Frame")
 ActiveTab.Name = "ActiveTab"
 ActiveTab.Size = UDim2.new(0, 180, 1, 0)
@@ -178,7 +164,6 @@ ActiveTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 ActiveTab.BorderSizePixel = 0
 ActiveTab.Parent = TabBar
 
--- Tab Icon และ Text
 local TabIcon = Instance.new("TextLabel")
 TabIcon.Size = UDim2.new(0, 20, 1, 0)
 TabIcon.Position = UDim2.new(0, 12, 0, 0)
@@ -200,7 +185,6 @@ TabText.Font = Enum.Font.SourceSans
 TabText.TextXAlignment = Enum.TextXAlignment.Left
 TabText.Parent = ActiveTab
 
--- Modified Indicator
 local ModifiedDot = Instance.new("Frame")
 ModifiedDot.Name = "ModifiedDot"
 ModifiedDot.Size = UDim2.new(0, 8, 0, 8)
@@ -223,7 +207,7 @@ ContentFrame.BorderSizePixel = 0
 ContentFrame.ClipsDescendants = true
 ContentFrame.Parent = MainFrame
 
--- Sidebar (Explorer/File Tree)
+-- Sidebar
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Size = UDim2.new(0, 250, 1, 0)
@@ -231,7 +215,6 @@ Sidebar.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
 Sidebar.BorderSizePixel = 0
 Sidebar.Parent = ContentFrame
 
--- Sidebar Header
 local SidebarHeader = Instance.new("Frame")
 SidebarHeader.Size = UDim2.new(1, 0, 0, 35)
 SidebarHeader.BackgroundColor3 = Color3.fromRGB(37, 37, 38)
@@ -249,7 +232,6 @@ SidebarTitle.Font = Enum.Font.SourceSansBold
 SidebarTitle.TextXAlignment = Enum.TextXAlignment.Left
 SidebarTitle.Parent = SidebarHeader
 
--- File Tree ScrollFrame
 local FileTree = Instance.new("ScrollingFrame")
 FileTree.Name = "FileTree"
 FileTree.Size = UDim2.new(1, 0, 1, -35)
@@ -266,7 +248,7 @@ TreeLayout.SortOrder = Enum.SortOrder.LayoutOrder
 TreeLayout.Padding = UDim.new(0, 2)
 TreeLayout.Parent = FileTree
 
--- Code Editor Area
+-- Editor Area
 local EditorFrame = Instance.new("Frame")
 EditorFrame.Name = "EditorFrame"
 EditorFrame.Size = UDim2.new(1, -250, 1, -30)
@@ -275,7 +257,6 @@ EditorFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 EditorFrame.BorderSizePixel = 0
 EditorFrame.Parent = ContentFrame
 
--- Line Numbers
 local LineNumbers = Instance.new("Frame")
 LineNumbers.Name = "LineNumbers"
 LineNumbers.Size = UDim2.new(0, 50, 1, 0)
@@ -283,7 +264,6 @@ LineNumbers.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 LineNumbers.BorderSizePixel = 0
 LineNumbers.Parent = EditorFrame
 
--- Code Content
 local CodeScroll = Instance.new("ScrollingFrame")
 CodeScroll.Name = "CodeScroll"
 CodeScroll.Size = UDim2.new(1, -50, 1, 0)
@@ -313,7 +293,7 @@ local StatusLeft = Instance.new("TextLabel")
 StatusLeft.Size = UDim2.new(0.5, -10, 1, 0)
 StatusLeft.Position = UDim2.new(0, 10, 0, 0)
 StatusLeft.BackgroundTransparency = 1
-StatusLeft.Text = "🔌 Ready"
+StatusLeft.Text = "Ready"
 StatusLeft.TextColor3 = Color3.fromRGB(255, 255, 255)
 StatusLeft.TextSize = 13
 StatusLeft.Font = Enum.Font.SourceSans
@@ -331,7 +311,91 @@ StatusRight.Font = Enum.Font.SourceSans
 StatusRight.TextXAlignment = Enum.TextXAlignment.Right
 StatusRight.Parent = StatusBar
 
--- ฟังก์ชันเพิ่มไฟล์ใน File Tree
+-- Run Button
+local RunButton = Instance.new("TextButton")
+RunButton.Name = "RunButton"
+RunButton.Size = UDim2.new(0, 80, 0, 28)
+RunButton.Position = UDim2.new(1, -90, 0, 6)
+RunButton.BackgroundColor3 = Color3.fromRGB(0, 122, 204)
+RunButton.BorderSizePixel = 0
+RunButton.Text = "▶ Run"
+RunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+RunButton.TextSize = 13
+RunButton.Font = Enum.Font.SourceSansBold
+RunButton.Parent = TitleBar
+
+local RunCorner = Instance.new("UICorner")
+RunCorner.CornerRadius = UDim.new(0, 4)
+RunCorner.Parent = RunButton
+
+-- Variables
+local scriptFunctions = {}
+local lineCount = 0
+local currentFunction = nil
+
+-- Functions
+local function addCodeLine(text, color)
+    lineCount = lineCount + 1
+    
+    local LineNum = Instance.new("TextLabel")
+    LineNum.Name = "Line"..lineCount
+    LineNum.Size = UDim2.new(1, 0, 0, 20)
+    LineNum.Position = UDim2.new(0, 0, 0, (lineCount - 1) * 20)
+    LineNum.BackgroundTransparency = 1
+    LineNum.Text = tostring(lineCount)
+    LineNum.TextColor3 = Color3.fromRGB(133, 133, 133)
+    LineNum.TextSize = 13
+    LineNum.Font = Enum.Font.Code
+    LineNum.TextXAlignment = Enum.TextXAlignment.Right
+    LineNum.Parent = LineNumbers
+    
+    local CodeLine = Instance.new("TextLabel")
+    CodeLine.Name = "CodeLine"..lineCount
+    CodeLine.Size = UDim2.new(1, 0, 0, 20)
+    CodeLine.BackgroundTransparency = 1
+    CodeLine.Text = "  " .. text
+    CodeLine.TextColor3 = color or Color3.fromRGB(220, 220, 220)
+    CodeLine.TextSize = 13
+    CodeLine.Font = Enum.Font.Code
+    CodeLine.TextXAlignment = Enum.TextXAlignment.Left
+    CodeLine.LayoutOrder = lineCount
+    CodeLine.Parent = CodeScroll
+    
+    return CodeLine
+end
+
+local function clearCode()
+    lineCount = 0
+    for _, child in pairs(LineNumbers:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
+    end
+    for _, child in pairs(CodeScroll:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
+    end
+end
+
+local function displayFunctionCode(funcData)
+    clearCode()
+    StatusLeft.Text = "Viewing: " .. funcData.name
+    currentFunction = funcData
+    
+    addCodeLine("-- " .. funcData.description, Color3.fromRGB(106, 153, 85))
+    addCodeLine("", Color3.fromRGB(220, 220, 220))
+    addCodeLine("local function " .. funcData.name .. "()", Color3.fromRGB(220, 220, 170))
+    addCodeLine("    -- Click 'Run' to execute", Color3.fromRGB(106, 153, 85))
+    addCodeLine("    " .. funcData.description, Color3.fromRGB(206, 145, 120))
+    addCodeLine("end", Color3.fromRGB(220, 220, 170))
+    addCodeLine("", Color3.fromRGB(220, 220, 220))
+    addCodeLine(funcData.name .. "()", Color3.fromRGB(220, 220, 170))
+    
+    CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
+    StatusRight.Text = "Lua  •  UTF-8  •  Ln " .. lineCount .. ", Col 1"
+end
+
 local function addFileToTree(icon, name, callback, order)
     local FileItem = Instance.new("TextButton")
     FileItem.Name = name
@@ -382,97 +446,13 @@ local function addFileToTree(icon, name, callback, order)
     return FileItem
 end
 
--- ฟังก์ชันเพิ่มโค้ดบรรทัด
-local lineCount = 0
-local function addCodeLine(text, color)
-    lineCount = lineCount + 1
-    
-    -- Line Number
-    local LineNum = Instance.new("TextLabel")
-    LineNum.Name = "Line"..lineCount
-    LineNum.Size = UDim2.new(1, 0, 0, 20)
-    LineNum.Position = UDim2.new(0, 0, 0, (lineCount - 1) * 20)
-    LineNum.BackgroundTransparency = 1
-    LineNum.Text = tostring(lineCount)
-    LineNum.TextColor3 = Color3.fromRGB(133, 133, 133)
-    LineNum.TextSize = 13
-    LineNum.Font = Enum.Font.Code
-    LineNum.TextXAlignment = Enum.TextXAlignment.Right
-    LineNum.Parent = LineNumbers
-    
-    -- Code Line
-    local CodeLine = Instance.new("TextLabel")
-    CodeLine.Name = "CodeLine"..lineCount
-    CodeLine.Size = UDim2.new(1, 0, 0, 20)
-    CodeLine.BackgroundTransparency = 1
-    CodeLine.Text = "  " .. text
-    CodeLine.TextColor3 = color or Color3.fromRGB(220, 220, 220)
-    CodeLine.TextSize = 13
-    CodeLine.Font = Enum.Font.Code
-    CodeLine.TextXAlignment = Enum.TextXAlignment.Left
-    CodeLine.LayoutOrder = lineCount
-    CodeLine.Parent = CodeScroll
-    
-    return CodeLine
-end
-
--- ฟังก์ชันเคลียร์โค้ด
-local function clearCode()
-    lineCount = 0
-    for _, child in pairs(LineNumbers:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
-        end
-    end
-    for _, child in pairs(CodeScroll:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
-        end
-    end
-end
-
--- ฟังก์ชันเพิ่มฟังก์ชันในโค้ด
-local scriptFunctions = {}
-
-local function addFunction(name, description, callback)
-    table.insert(scriptFunctions, {
-        name = name,
-        description = description,
-        callback = callback
-    })
-    
-    -- อัพเดทไฟล์ใน Tree (จะทำตอนโชว์)
-end
-
--- ฟังก์ชันแสดงโค้ดฟังก์ชัน
-local function displayFunctionCode(funcData)
-    clearCode()
-    StatusLeft.Text = "🔌 Viewing: " .. funcData.name
-    
-    -- แสดงโค้ดตัวอย่าง
-    addCodeLine("-- " .. funcData.description, Color3.fromRGB(106, 153, 85))
-    addCodeLine("", Color3.fromRGB(220, 220, 220))
-    addCodeLine("local function " .. funcData.name .. "()", Color3.fromRGB(220, 220, 170))
-    addCodeLine("    -- Click 'Run' to execute", Color3.fromRGB(106, 153, 85))
-    addCodeLine("    " .. funcData.description, Color3.fromRGB(206, 145, 120))
-    addCodeLine("end", Color3.fromRGB(220, 220, 170))
-    addCodeLine("", Color3.fromRGB(220, 220, 220))
-    addCodeLine(funcData.name .. "()", Color3.fromRGB(220, 220, 170))
-    
-    CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
-    StatusRight.Text = "Lua  •  UTF-8  •  Ln " .. lineCount .. ", Col 1"
-end
-
--- ฟังก์ชันอัพเดท File Tree
 local function updateFileTree()
-    -- เคลียร์ไฟล์เก่า
     for _, child in pairs(FileTree:GetChildren()) do
         if child:IsA("TextButton") then
             child:Destroy()
         end
     end
     
-    -- เพิ่มไฟล์ใหม่
     addFileToTree("📁", "src", nil, 1)
     
     for i, funcData in ipairs(scriptFunctions) do
@@ -481,39 +461,17 @@ local function updateFileTree()
         end, i + 1)
     end
     
-    -- อัพเดท Canvas Size
-    TreeLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        FileTree.CanvasSize = UDim2.new(0, 0, 0, TreeLayout.AbsoluteContentSize.Y + 10)
-    end)
-    FileTree.CanvasSize = UDim2.new(0, 0, 0, TreeLayout.AbsoluteContentSize.Y + 10)
+    FileTree.CanvasSize = UDim2.new(0, 0, 0, #scriptFunctions * 30 + 100)
 end
 
--- เพิ่มปุ่ม Run ที่มุมขวาบน
-local RunButton = Instance.new("TextButton")
-RunButton.Name = "RunButton"
-RunButton.Size = UDim2.new(0, 80, 0, 28)
-RunButton.Position = UDim2.new(1, -90, 0, 6)
-RunButton.BackgroundColor3 = Color3.fromRGB(0, 122, 204)
-RunButton.BorderSizePixel = 0
-RunButton.Text = "▶ Run"
-RunButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RunButton.TextSize = 13
-RunButton.Font = Enum.Font.SourceSansBold
-RunButton.Parent = TitleBar
+local function addFunction(name, description, callback)
+    table.insert(scriptFunctions, {
+        name = name,
+        description = description,
+        callback = callback
+    })
+end
 
-local RunCorner = Instance.new("UICorner")
-RunCorner.CornerRadius = UDim.new(0, 4)
-RunCorner.Parent = RunButton
-
-RunButton.MouseEnter:Connect(function()
-    TweenService:Create(RunButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 142, 234)}):Play()
-end)
-
-RunButton.MouseLeave:Connect(function()
-    TweenService:Create(RunButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 122, 204)}):Play()
-end)
-
--- ฟังก์ชัน Toggle
 local isVisible = false
 
 local function toggleGUI()
@@ -538,7 +496,7 @@ local function toggleGUI()
     end
 end
 
--- Mac Buttons Actions
+-- Button Actions
 CloseBtn.MouseButton1Click:Connect(function()
     toggleGUI()
 end)
@@ -548,7 +506,6 @@ MinBtn.MouseButton1Click:Connect(function()
 end)
 
 MaxBtn.MouseButton1Click:Connect(function()
-    -- Toggle Maximize
     if MainFrame.Size == UDim2.new(0, 900, 0, 600) then
         TweenService:Create(MainFrame, TweenInfo.new(0.3), {
             Size = UDim2.new(0.95, 0, 0.95, 0),
@@ -562,7 +519,18 @@ MaxBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Mac Buttons Hover Effects
+RunButton.MouseButton1Click:Connect(function()
+    if currentFunction and currentFunction.callback then
+        StatusLeft.Text = "Executing: " .. currentFunction.name
+        pcall(currentFunction.callback)
+        wait(1)
+        StatusLeft.Text = "Completed: " .. currentFunction.name
+    else
+        StatusLeft.Text = "No function selected"
+    end
+end)
+
+-- Hover Effects
 CloseBtn.MouseEnter:Connect(function()
     TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 115, 107)}):Play()
 end)
@@ -587,50 +555,43 @@ MaxBtn.MouseLeave:Connect(function()
     TweenService:Create(MaxBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 201, 64)}):Play()
 end)
 
--- Run Button Action
-local currentFunction = nil
-
-RunButton.MouseButton1Click:Connect(function()
-    if currentFunction and currentFunction.callback then
-        StatusLeft.Text = "⚡ Executing: " .. currentFunction.name
-        currentFunction.callback()
-        wait(1)
-        StatusLeft.Text = "✅ Completed: " .. currentFunction.name
-    else
-        StatusLeft.Text = "⚠️ No function selected"
-    end
+RunButton.MouseEnter:Connect(function()
+    TweenService:Create(RunButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 142, 234)}):Play()
 end)
 
--- อัพเดท current function เมื่อคลิกไฟล์
-local oldAddFileToTree = addFileToTree
-function addFileToTree(icon, name, callback, order)
-    local item = oldAddFileToTree(icon, name, function()
-        if callback then callback() end
-        -- หา function ที่ตรงกับชื่อไฟล์
-        for _, funcData in ipairs(scriptFunctions) do
-            if funcData.name .. ".lua" == name then
-                currentFunction = funcData
-                break
-            end
-        end
-    end, order)
-    return item
-end
+RunButton.MouseLeave:Connect(function()
+    TweenService:Create(RunButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 122, 204)}):Play()
+end)
 
--- Keybind สำหรับ Toggle (Right Shift)
+-- Keybind
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
         toggleGUI()
     end
 end)
 
--- เริ่มต้น
+-- Show Welcome
+local function showWelcome()
+    clearCode()
+    addCodeLine("--[[", Color3.fromRGB(106, 153, 85))
+    addCodeLine("    Welcome to VS Code Style GUI", Color3.fromRGB(106, 153, 85))
+    addCodeLine("    Created for Roblox Executors", Color3.fromRGB(106, 153, 85))
+    addCodeLine("", Color3.fromRGB(106, 153, 85))
+    addCodeLine("    Press Right Shift to toggle", Color3.fromRGB(106, 153, 85))
+    addCodeLine("    Click files to view code", Color3.fromRGB(106, 153, 85))
+    addCodeLine("    Click Run to execute", Color3.fromRGB(106, 153, 85))
+    addCodeLine("--]]", Color3.fromRGB(106, 153, 85))
+    addCodeLine("", Color3.fromRGB(220, 220, 220))
+    addCodeLine("print('Welcome!')", Color3.fromRGB(220, 220, 170))
+    CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
+end
+
 wait(0.5)
 toggleGUI()
+showWelcome()
 
-print("✅ VS Code GUI Premium Loaded!")
-print("📌 Press Right Shift to toggle")
-print("📝 Use AddFunction() to add your scripts")
+print("VS Code GUI Loaded!")
+print("Press Right Shift to toggle")
 
 -- Return API
 return {
@@ -638,7 +599,7 @@ return {
     AddFunction = function(name, description, callback)
         addFunction(name, description, callback)
         updateFileTree()
-        StatusLeft.Text = "📝 Added: " .. name
+        StatusLeft.Text = "Added: " .. name
     end,
     SetStatus = function(text)
         StatusLeft.Text = text
@@ -647,20 +608,8 @@ return {
         scriptFunctions = {}
         updateFileTree()
         clearCode()
-        StatusLeft.Text = "🗑️ Functions cleared"
+        StatusLeft.Text = "Functions cleared"
     end,
-    ShowWelcome = function()
-        clearCode()
-        addCodeLine("--[[", Color3.fromRGB(106, 153, 85))
-        addCodeLine("    Welcome to VS Code Style GUI", Color3.fromRGB(106, 153, 85))
-        addCodeLine("    Created for Roblox Executors", Color3.fromRGB(106, 153, 85))
-        addCodeLine("", Color3.fromRGB(106, 153, 85))
-        addCodeLine("    Press Right Shift to toggle GUI", Color3.fromRGB(106, 153, 85))
-        addCodeLine("    Click files in Explorer to view", Color3.fromRGB(106, 153, 85))
-        addCodeLine("    Click Run button to execute", Color3.fromRGB(106, 153, 85))
-        addCodeLine("--]]", Color3.fromRGB(106, 153, 85))
-        addCodeLine("", Color3.fromRGB(220, 220, 220))
-        addCodeLine("print('Welcome to VS Code GUI!')", Color3.fromRGB(220, 220, 170))
-        CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
-    end,
+    ShowWelcome = showWelcome,
     GUI = ScreenGui
+}
