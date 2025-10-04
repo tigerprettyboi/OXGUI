@@ -523,7 +523,7 @@ RunButton.MouseButton1Click:Connect(function()
     if currentFunction and currentFunction.callback then
         StatusLeft.Text = "Executing: " .. currentFunction.name
         pcall(currentFunction.callback)
-        wait(1)
+        task.wait(1)
         StatusLeft.Text = "Completed: " .. currentFunction.name
     else
         StatusLeft.Text = "No function selected"
@@ -586,12 +586,13 @@ local function showWelcome()
     CodeScroll.CanvasSize = UDim2.new(0, 0, 0, lineCount * 20 + 20)
 end
 
-wait(0.5)
-toggleGUI()
-showWelcome()
-
-print("VS Code GUI Loaded!")
-print("Press Right Shift to toggle")
+task.spawn(function()
+    task.wait(0.5)
+    toggleGUI()
+    showWelcome()
+    print("VS Code GUI Loaded!")
+    print("Press Right Shift to toggle")
+end)
 
 -- Return API
 return {
