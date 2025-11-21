@@ -1,442 +1,310 @@
---[[
-    ElegantUI - A modern, glassmorphism-style UI Library for Roblox
-    เวอร์ชัน: 1.0.0
+--[[ 
+    AESTHETIC GLASS UI LIBRARY 
+    Style: Modern, Transparent, Gradient, Animated
 ]]
 
+local Library = {}
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
-local ElegantUI = {}
-ElegantUI.__index = ElegantUI
-
--- สีและสไตล์หลัก (สามารถปรับแต่งได้)
-local THEME = {
-	BackgroundColor = Color3.fromRGB(25, 25, 25),
-	BackgroundTransparency = 0.15,
-	
-	AccentColor = Color3.fromRGB(100, 160, 255),
-	
-	StrokeColor = Color3.fromRGB(120, 120, 120),
-	StrokeTransparency = 0.5,
-	
-	ShadowColor = Color3.fromRGB(0, 0, 0),
-	ShadowTransparency = 0.6,
-	
-	TextColor = Color3.fromRGB(240, 240, 240),
-	
-	CornerRadius = 8,
-	StrokeThickness = 1,
+-- Setting (Animation Speed/Colors)
+local Config = {
+	TweenTime = 0.3,
+	EasingStyle = Enum.EasingStyle.Quart,
+	MainColor = Color3.fromRGB(255, 255, 255), -- สีข้อความหลัก
+	AccentColor = Color3.fromRGB(0, 255, 213), -- สีธีม (Cyan Neon)
+	GlassColor = Color3.fromRGB(20, 20, 20),   -- สีพื้นหลังกระจก
+	Transparency = 0.2                         -- ความโปร่งใส (ยิ่งน้อยยิ่งใส)
 }
 
--- ||----- Utility Functions -----||
+-- Utility Functions
+local function Tween(obj, props, time)
+	local info = TweenInfo.new(time or Config.TweenTime, Config.EasingStyle, Enum.EasingDirection.Out)
+	local tween = TweenService:Create(obj, info, props)
+	tween:Play()
+	return tween
+end
 
-local function Create(instanceType, properties)
-	local inst = Instance.new(instanceType)
-	for prop, value in pairs(properties or {}) do
-		inst[prop] = value
+local function MakeDraggable(topbarobject, object)
+	local Dragging = nil
+	local DragInput = nil
+	local DragStart = nil
+	local StartPosition = nil
+
+	local function Update(input)
+		local Delta = input.Position - DragStart
+		local pos = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+		Tween(object, {Position = pos}, 0.1)
 	end
-	return inst
-end
 
-local function ApplyGlassmorphism(frame)
-	Create("UICorner", {
-		CornerRadius = UDim.new(0, THEME.CornerRadius),
-		Parent = frame,
-	})
-	
-	Create("UIStroke", {
-		Color = THEME.StrokeColor,
-		Transparency = THEME.StrokeTransparency,
-		Thickness = THEME.StrokeThickness,
-		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		Parent = frame,
-	})
-	
-	Create("UIShadow", {
-		Transparency = THEME.ShadowTransparency,
-		Color = THEME.ShadowColor,
-		Size = 8,
-		Offset = Vector2.new(0, 2),
-		Parent = frame,
-	})
-	
-	frame.BackgroundColor3 = THEME.BackgroundColor
-	frame.BackgroundTransparency = THEME.BackgroundTransparency
-	frame.BorderColor3 = Color3.fromRGB(0, 0, 0) -- ซ่อน Border หลัก
-	frame.BorderSizePixel = 0
-end
-
-local function MakeDraggable(gui)
-	local dragging
-	local dragInput
-	local dragStart
-	local startPos
-
-	gui.InputBegan:Connect(function(input)
+	topbarobject.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = gui.Position
+			Dragging = true
+			DragStart = input.Position
+			StartPosition = object.Position
+
 			input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
+					Dragging = false
 				end
 			end)
 		end
 	end)
 
-	gui.InputChanged:Connect(function(input)
+	topbarobject.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
+			DragInput = input
 		end
 	end)
 
-	RunService.InputBMS:Connect(function(dt)
-		if dragging and dragInput then
-			local delta = dragInput.Position - dragStart
-			gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	UserInputService.InputChanged:Connect(function(input)
+		if input == DragInput and Dragging then
+			Update(input)
 		end
 	end)
 end
 
-
--- ||----- Tab Class -----||
-
-local Tab = {}
-Tab.__index = Tab
-
-function Tab:AddToggle(text, callback)
-	local state = false
-	callback = callback or function() end
-
-	local toggleFrame = Create("Frame", {
-		Name = "ToggleFrame",
-		Size = UDim2.new(1, 0, 0, 30),
-		BackgroundTransparency = 1,
-		Parent = self.Container,
-	})
-
-	local label = Create("TextLabel", {
-		Name = "Label",
-		Size = UDim2.new(0.7, -5, 1, 0),
-		BackgroundTransparency = 1,
-		Text = text,
-		TextColor3 = THEME.TextColor,
-		Font = Enum.Font.SourceSans,
-		TextSize = 16,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = toggleFrame,
-	})
-
-	local switchButton = Create("TextButton", {
-		Name = "SwitchButton",
-		Size = UDim2.new(0, 50, 0, 20),
-		Position = UDim2.new(1, -50, 0.5, -10),
-		Text = "",
-		BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-		Parent = toggleFrame,
-	})
+-- Create Window Function
+function Library:CreateWindow(Settings)
+	local WinName = Settings.Name or "UI Library"
 	
-	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = switchButton })
-
-	local indicator = Create("Frame", {
-		Name = "Indicator",
-		Size = UDim2.new(0, 16, 0, 16),
-		Position = UDim2.new(0, 2, 0.5, -8),
-		BackgroundColor3 = Color3.fromRGB(220, 220, 220),
-		BorderSizePixel = 0,
-		Parent = switchButton,
-	})
+	-- Main ScreenGui
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Name = "GlassLibrary"
+	ScreenGui.ResetOnSpawn = false
 	
-	Create("UICorner", { CornerRadius = UDim.new(1, 0), Parent = indicator })
-
-	local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
-	switchButton.MouseButton1Click:Connect(function()
-		state = not state
-		
-		local indicatorPos = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-		local switchColor = state and THEME.AccentColor or Color3.fromRGB(60, 60, 60)
-		
-		TweenService:Create(indicator, tweenInfo, { Position = indicatorPos }):Play()
-		TweenService:Create(switchButton, tweenInfo, { BackgroundColor3 = switchColor }):Play()
-		
-		task.spawn(callback, state)
-	end)
-
-	return self -- เพื่อให้สามารถ chain function ได้ (ถ้าต้องการ)
-end
-
-function Tab:AddDropdown(text, options, callback)
-	options = options or {}
-	callback = callback or function() end
-	local isOpen = false
-
-	local dropdownFrame = Create("Frame", {
-		Name = "DropdownFrame",
-		Size = UDim2.new(1, 0, 0, 30),
-		BackgroundTransparency = 1,
-		Parent = self.Container,
-		ZIndex = 2,
-	})
-
-	local label = Create("TextLabel", {
-		Name = "Label",
-		Size = UDim2.new(0.5, -5, 1, 0),
-		BackgroundTransparency = 1,
-		Text = text,
-		TextColor3 = THEME.TextColor,
-		Font = Enum.Font.SourceSans,
-		TextSize = 16,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Parent = dropdownFrame,
-	})
-
-	local selectedButton = Create("TextButton", {
-		Name = "SelectedButton",
-		Size = UDim2.new(0.5, 0, 1, 0),
-		Position = UDim2.new(0.5, 0, 0, 0),
-		Text = (options[1] or "Select...") .. " ▼",
-		Font = Enum.Font.SourceSans,
-		TextSize = 16,
-		TextColor3 = THEME.TextColor,
-		BackgroundColor3 = THEME.BackgroundColor,
-		BackgroundTransparency = 0.2,
-		ZIndex = 3,
-		Parent = dropdownFrame,
-	})
-	ApplyGlassmorphism(selectedButton)
-	selectedButton:FindFirstChild("UIShadow"):Destroy() -- ไม่ต้องการเงาซ้อน
-
-	local optionsFrame = Create("ScrollingFrame", {
-		Name = "OptionsFrame",
-		Size = UDim2.new(0.5, 0, 0, math.min(#options * 25, 100)), -- ขนาด 100 คือ max height
-		Position = UDim2.new(0.5, 0, 1, 5),
-		BackgroundColor3 = THEME.BackgroundColor,
-		BackgroundTransparency = 0.1,
-		BorderSizePixel = 0,
-		Visible = false,
-		ZIndex = 4,
-		Parent = dropdownFrame,
-		ScrollBarThickness = 4,
-	})
-	ApplyGlassmorphism(optionsFrame)
-
-	local listLayout = Create("UIListLayout", {
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		Padding = UDim.new(0, 2),
-		Parent = optionsFrame,
-	})
-
-	for i, optionName in ipairs(options) do
-		local optionButton = Create("TextButton", {
-			Name = optionName,
-			Size = UDim2.new(1, 0, 0, 25),
-			Text = "  " .. optionName,
-			Font = Enum.Font.SourceSans,
-			TextSize = 14,
-			TextColor3 = THEME.TextColor,
-			BackgroundTransparency = 1,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			LayoutOrder = i,
-			ZIndex = 5,
-			Parent = optionsFrame,
-		})
-		
-		-- Hover Effect
-		optionButton.MouseEnter:Connect(function()
-			optionButton.BackgroundTransparency = 0.8
-			optionButton.BackgroundColor3 = THEME.AccentColor
-		end)
-		optionButton.MouseLeave:Connect(function()
-			optionButton.BackgroundTransparency = 1
-		end)
-
-		optionButton.MouseButton1Click:Connect(function()
-			selectedButton.Text = optionName .. " ▼"
-			isOpen = false
-			optionsFrame.Visible = false
-			dropdownFrame.ZIndex = 2 -- Reset ZIndex
-			task.spawn(callback, optionName)
-		end)
+	-- Check protection
+	if syn and syn.protect_gui then
+		syn.protect_gui(ScreenGui)
+		ScreenGui.Parent = CoreGui
+	elseif gethui then
+		ScreenGui.Parent = gethui()
+	else
+		ScreenGui.Parent = CoreGui
 	end
+
+	-- Main Frame (The Glass Window)
+	local MainFrame = Instance.new("Frame")
+	MainFrame.Name = "MainFrame"
+	MainFrame.Size = UDim2.new(0, 500, 0, 350)
+	MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
+	MainFrame.BackgroundColor3 = Config.GlassColor
+	MainFrame.BackgroundTransparency = Config.Transparency
+	MainFrame.BorderSizePixel = 0
+	MainFrame.ClipsDescendants = true -- Important for effects
+	MainFrame.Parent = ScreenGui
+
+	-- Styling: Corners
+	local UICorner = Instance.new("UICorner")
+	UICorner.CornerRadius = UDim.new(0, 12)
+	UICorner.Parent = MainFrame
+
+	-- Styling: Gradient Stroke (ขอบเรืองแสงไล่สี)
+	local UIStroke = Instance.new("UIStroke")
+	UIStroke.Parent = MainFrame
+	UIStroke.Thickness = 2
+	UIStroke.Transparency = 0.3
 	
-	selectedButton.MouseButton1Click:Connect(function()
-		isOpen = not isOpen
-		optionsFrame.Visible = isOpen
-		dropdownFrame.ZIndex = isOpen and 10 or 2 -- ทำให้ Dropdown อยู่เหนือสุดตอนเปิด
-	end)
-
-	return self
-end
-
-
--- ||----- Window Class -----||
-
-function ElegantUI.new(title)
-	local self = setmetatable({}, ElegantUI)
+	local StrokeGradient = Instance.new("UIGradient")
+	StrokeGradient.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Config.AccentColor),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 0, 255)) -- ไล่สีไปม่วง
+	}
+	StrokeGradient.Rotation = 45
+	StrokeGradient.Parent = UIStroke
 	
-	self.Tabs = {}
-	self.ActiveTab = nil
-	self.Title = title or "ElegantUI"
-
-	-- 1. Create ScreenGui
-	self.ScreenGui = Create("ScreenGui", {
-		Name = "ElegantUIScreenGui",
-		ResetOnSpawn = false,
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-	})
-
-	-- 2. Create Main Window Frame
-	self.Window = Create("Frame", {
-		Name = "MainWindow",
-		Size = UDim2.new(0, 450, 0, 300),
-		Position = UDim2.new(0.5, -225, 0.5, -150),
-		Parent = self.ScreenGui,
-	})
-	ApplyGlassmorphism(self.Window)
-	MakeDraggable(self.Window)
-
-	-- 3. Create Title Bar
-	local titleBar = Create("TextLabel", {
-		Name = "TitleBar",
-		Size = UDim2.new(1, 0, 0, 30),
-		BackgroundTransparency = 1,
-		Font = Enum.Font.SourceSansSemibold,
-		Text = self.Title,
-		TextSize = 18,
-		TextColor3 = THEME.TextColor,
-		Parent = self.Window,
-	})
-	
-	-- เส้นแบ่งใต้ Title
-	Create("Frame", {
-		Name = "TitleSeparator",
-		Size = UDim2.new(1, -20, 0, 1),
-		Position = UDim2.new(0.5, -((450-20)/2), 0, 30),
-		BackgroundColor3 = THEME.StrokeColor,
-		BackgroundTransparency = THEME.StrokeTransparency,
-		BorderSizePixel = 0,
-		Parent = self.Window,
-	})
-
-	-- 4. Create Tab Container
-	self.TabContainer = Create("Frame", {
-		Name = "TabContainer",
-		Size = UDim2.new(1, -20, 0, 30),
-		Position = UDim2.new(0.5, -((450-20)/2), 0, 40),
-		BackgroundTransparency = 1,
-		Parent = self.Window,
-	})
-	
-	Create("UIListLayout", {
-		FillDirection = Enum.FillDirection.Horizontal,
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		VerticalAlignment = Enum.VerticalAlignment.Center,
-		Padding = UDim.new(0, 5),
-		Parent = self.TabContainer,
-	})
-
-	-- 5. Create Content Container
-	self.ContentContainer = Create("Frame", {
-		Name = "ContentContainer",
-		Size = UDim2.new(1, -20, 1, -85), -- 30(Title) + 10(Padding) + 30(Tabs) + 15(Padding)
-		Position = UDim2.new(0.5, -((450-20)/2), 0, 85),
-		BackgroundTransparency = 1,
-		Parent = self.Window,
-	})
-	
-	-- 6. Padding ภายใน Content
-	Create("UIPadding", {
-		PaddingTop = UDim.new(0, 10),
-		PaddingLeft = UDim.new(0, 5),
-		PaddingRight = UDim.new(0, 5),
-		Parent = self.ContentContainer,
-	})
-
-	return self
-end
-
-function ElegantUI:AddTab(name)
-	local tab = setmetatable({}, Tab)
-	
-	-- Create Tab Page (Content Frame)
-	local tabPage = Create("Frame", {
-		Name = name .. "Page",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		Visible = false,
-		Parent = self.ContentContainer,
-	})
-	
-	Create("UIListLayout", {
-		SortOrder = Enum.SortOrder.LayoutOrder,
-		Padding = UDim.new(0, 10),
-		Parent = tabPage,
-	})
-
-	tab.Page = tabPage
-	tab.Container = tabPage -- ที่สำหรับใส่ Components
-	tab.Name = name
-
-	-- Create Tab Button
-	local tabButton = Create("TextButton", {
-		Name = name .. "Button",
-		Size = UDim2.new(0, 80, 1, 0),
-		Text = name,
-		Font = Enum.Font.SourceSans,
-		TextSize = 16,
-		TextColor3 = THEME.TextColor,
-		BackgroundColor3 = THEME.BackgroundColor,
-		BackgroundTransparency = 0.5, -- สีจาง (Idle)
-		LayoutOrder = #self.Tabs + 1,
-		Parent = self.TabContainer,
-	})
-	ApplyGlassmorphism(tabButton)
-	tabButton:FindFirstChild("UIShadow"):Destroy() -- ไม่ต้องการเงา
-	
-	tab.Button = tabButton
-	
-	-- Logic การสลับ Tab
-	local function activateTab()
-		-- Deactivate แท็บเก่า
-		if self.ActiveTab then
-			self.ActiveTab.Page.Visible = false
-			self.ActiveTab.Button.BackgroundTransparency = 0.5 -- สีจาง (Idle)
-			self.ActiveTab.Button.TextColor3 = THEME.TextColor
+	-- Animating the Border Rotation
+	spawn(function()
+		while true do
+			local tw = TweenService:Create(StrokeGradient, TweenInfo.new(3, Enum.EasingStyle.Linear), {Rotation = StrokeGradient.Rotation + 360})
+			tw:Play()
+			tw.Completed:Wait()
 		end
+	end)
+
+	-- Header / Title
+	local Header = Instance.new("Frame")
+	Header.Size = UDim2.new(1, 0, 0, 40)
+	Header.BackgroundTransparency = 1
+	Header.Parent = MainFrame
+	
+	local TitleLabel = Instance.new("TextLabel")
+	TitleLabel.Text = WinName
+	TitleLabel.Size = UDim2.new(1, -20, 1, 0)
+	TitleLabel.Position = UDim2.new(0, 20, 0, 0)
+	TitleLabel.BackgroundTransparency = 1
+	TitleLabel.TextColor3 = Config.MainColor
+	TitleLabel.Font = Enum.Font.GothamBold
+	TitleLabel.TextSize = 18
+	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TitleLabel.Parent = Header
+
+	MakeDraggable(Header, MainFrame)
+
+	-- Container for Elements
+	local Container = Instance.new("ScrollingFrame")
+	Container.Name = "Container"
+	Container.Size = UDim2.new(1, -20, 1, -50)
+	Container.Position = UDim2.new(0, 10, 0, 45)
+	Container.BackgroundTransparency = 1
+	Container.ScrollBarThickness = 2
+	Container.ScrollBarImageColor3 = Config.AccentColor
+	Container.Parent = MainFrame
+	
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.Padding = UDim.new(0, 8)
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.Parent = Container
+
+	-- Intro Animation
+	MainFrame.Transform = CFrame.new(0, 50, 0)
+	MainFrame.BackgroundTransparency = 1
+	Tween(MainFrame, {BackgroundTransparency = Config.Transparency}, 0.5)
+	
+	-- Custom Tween for CFrame/Transform needs a wrapper, simpler to use Position/Size pop
+	local OriginalSize = MainFrame.Size
+	MainFrame.Size = UDim2.new(0,0,0,0)
+	Tween(MainFrame, {Size = OriginalSize}, 0.6)
+
+	-- Internal Functions
+	local Elements = {}
+
+	function Elements:CreateButton(ButtonSettings)
+		local BName = ButtonSettings.Name or "Button"
+		local BCallback = ButtonSettings.Callback or function() end
+
+		local ButtonFrame = Instance.new("Frame")
+		ButtonFrame.Name = "Button"
+		ButtonFrame.Size = UDim2.new(1, 0, 0, 35)
+		ButtonFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		ButtonFrame.BackgroundTransparency = 0.95 -- Very subtle background
+		ButtonFrame.Parent = Container
+
+		local BtnCorner = Instance.new("UICorner")
+		BtnCorner.CornerRadius = UDim.new(0, 6)
+		BtnCorner.Parent = ButtonFrame
+
+		local BtnTrigger = Instance.new("TextButton")
+		BtnTrigger.Size = UDim2.new(1, 0, 1, 0)
+		BtnTrigger.BackgroundTransparency = 1
+		BtnTrigger.Text = "  " .. BName
+		BtnTrigger.TextColor3 = Config.MainColor
+		BtnTrigger.Font = Enum.Font.Gotham
+		BtnTrigger.TextSize = 14
+		BtnTrigger.TextXAlignment = Enum.TextXAlignment.Left
+		BtnTrigger.Parent = ButtonFrame
 		
-		-- Activate แท็บใหม่
-		tab.Page.Visible = true
-		tab.Button.BackgroundTransparency = 0.2 -- สีเข้ม (Active)
-		tab.Button.TextColor3 = THEME.AccentColor
+		-- Icon/Indicator
+		local Indicator = Instance.new("Frame")
+		Indicator.Size = UDim2.new(0, 3, 0, 15)
+		Indicator.Position = UDim2.new(0, 0, 0.5, -7.5)
+		Indicator.BackgroundColor3 = Config.AccentColor
+		Indicator.BackgroundTransparency = 1 -- Hidden by default
+		Indicator.Parent = ButtonFrame
+		local IndCorner = Instance.new("UICorner")
+		IndCorner.CornerRadius = UDim.new(0,4)
+		IndCorner.Parent = Indicator
+
+		-- Hover Effects
+		BtnTrigger.MouseEnter:Connect(function()
+			Tween(ButtonFrame, {BackgroundTransparency = 0.85})
+			Tween(Indicator, {BackgroundTransparency = 0})
+			Tween(BtnTrigger, {TextTransparency = 0.2})
+		end)
+
+		BtnTrigger.MouseLeave:Connect(function()
+			Tween(ButtonFrame, {BackgroundTransparency = 0.95})
+			Tween(Indicator, {BackgroundTransparency = 1})
+			Tween(BtnTrigger, {TextTransparency = 0})
+		end)
+
+		BtnTrigger.MouseButton1Click:Connect(function()
+			-- Click Animation (Scale punch)
+			Tween(ButtonFrame, {Size = UDim2.new(0.98, 0, 0, 33)}, 0.05).Completed:Wait()
+			Tween(ButtonFrame, {Size = UDim2.new(1, 0, 0, 35)}, 0.05)
+			BCallback()
+		end)
+	end
+
+	function Elements:CreateToggle(ToggleSettings)
+		local TName = ToggleSettings.Name or "Toggle"
+		local TDefault = ToggleSettings.CurrentValue or false
+		local TCallback = ToggleSettings.Callback or function() end
+		local TState = TDefault
+
+		local ToggleFrame = Instance.new("Frame")
+		ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
+		ToggleFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		ToggleFrame.BackgroundTransparency = 0.95
+		ToggleFrame.Parent = Container
 		
-		self.ActiveTab = tab
+		local TgCorner = Instance.new("UICorner")
+		TgCorner.CornerRadius = UDim.new(0, 6)
+		TgCorner.Parent = ToggleFrame
+
+		local Label = Instance.new("TextLabel")
+		Label.Size = UDim2.new(1, -50, 1, 0)
+		Label.Position = UDim2.new(0, 10, 0, 0)
+		Label.BackgroundTransparency = 1
+		Label.Text = TName
+		Label.TextColor3 = Config.MainColor
+		Label.Font = Enum.Font.Gotham
+		Label.TextSize = 14
+		Label.TextXAlignment = Enum.TextXAlignment.Left
+		Label.Parent = ToggleFrame
+
+		-- Switch Visual
+		local SwitchBg = Instance.new("Frame")
+		SwitchBg.Size = UDim2.new(0, 40, 0, 20)
+		SwitchBg.Position = UDim2.new(1, -50, 0.5, -10)
+		SwitchBg.BackgroundColor3 = TState and Config.AccentColor or Color3.fromRGB(60,60,60)
+		SwitchBg.Parent = ToggleFrame
+		
+		local SwCorner = Instance.new("UICorner")
+		SwCorner.CornerRadius = UDim.new(1, 0)
+		SwCorner.Parent = SwitchBg
+		
+		local Circle = Instance.new("Frame")
+		Circle.Size = UDim2.new(0, 16, 0, 16)
+		Circle.Position = TState and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+		Circle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+		Circle.Parent = SwitchBg
+		
+		local CirCorner = Instance.new("UICorner")
+		CirCorner.CornerRadius = UDim.new(1, 0)
+		CirCorner.Parent = Circle
+
+		local Button = Instance.new("TextButton")
+		Button.Size = UDim2.new(1, 0, 1, 0)
+		Button.BackgroundTransparency = 1
+		Button.Text = ""
+		Button.Parent = ToggleFrame
+
+		local function UpdateToggle()
+			TState = not TState
+			
+			-- Animations
+			if TState then
+				Tween(SwitchBg, {BackgroundColor3 = Config.AccentColor})
+				Tween(Circle, {Position = UDim2.new(1, -18, 0.5, -8)})
+			else
+				Tween(SwitchBg, {BackgroundColor3 = Color3.fromRGB(60,60,60)})
+				Tween(Circle, {Position = UDim2.new(0, 2, 0.5, -8)})
+			end
+			
+			TCallback(TState)
+		end
+
+		Button.MouseButton1Click:Connect(UpdateToggle)
 	end
 	
-	tabButton.MouseButton1Click:Connect(activateTab)
-	
-	table.insert(self.Tabs, tab)
-	
-	-- ถ้าเป็นแท็บแรก ให้เปิดใช้งานเลย
-	if #self.Tabs == 1 then
-		activateTab()
-	end
-	
-	return tab
+	-- Auto resize container
+	UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		Container.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+	end)
+
+	return Elements
 end
 
-function ElegantUI:Destroy()
-	if self.ScreenGui then
-		self.ScreenGui:Destroy()
-	end
-	
-	-- Clear references
-	for k in pairs(self) do
-		self[k] = nil
-	end
-	setmetatable(self, nil)
-end
-
-
-return ElegantUI
+return Library
